@@ -1,0 +1,5 @@
+# Local leftovers if DB was ever under this repo
+data/
+.env
+.env.*
+!.env.example

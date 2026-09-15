@@ -1,0 +1,217 @@
+:root {
+  --bg-center: #124e8a;
+  --bg-edge: #11365c;
+  --star-white: #f7f8fa;
+  --planet-size: min(52vw, 56vh, 560px);
+  --planet-rest-top: 32%;
+}
+
+body.intro-active {
+  overflow: hidden;
+  background: var(--bg-edge);
+  color: var(--star-white);
+}
+
+body.intro-active #app {
+  min-height: 100dvh;
+}
+
+.stage {
+  width: 100%;
+  height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at center, var(--bg-center), var(--bg-edge));
+  font-family: "Swei Gothic CJK TC", "Noto Sans TC", "Microsoft JhengHei",
+    sans-serif;
+}
+
+.stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  transform-origin: center center;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.star-far {
+  background: #b3b3b3;
+  filter: blur(0.7px);
+  opacity: 0.72;
+}
+
+.star-near {
+  background: #ffffff;
+}
+
+.stage.is-zoom .stars-far {
+  transform: scale(1.1);
+  transition: transform 1s ease-out;
+}
+
+.stage.is-zoom .stars-near {
+  transform: scale(1.24);
+  transition: transform 1s ease-out;
+}
+
+.stage .hero,
+.stage .login-panel {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}
+
+.stage .planet {
+  position: absolute;
+  left: 50%;
+  top: var(--planet-rest-top);
+  width: var(--planet-size);
+  height: auto;
+  display: block;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+}
+
+.stage .brand {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--planet-rest-top) + (var(--planet-size) * 0.46));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 0;
+  transform: translateX(-50%);
+}
+
+.stage .logo {
+  width: min(52vw, 500px);
+  height: 72px;
+  display: block;
+  object-fit: cover;
+  object-position: 50% 47.5%;
+}
+
+.stage .logo-small {
+  width: min(60vw, 480px);
+  height: 80px;
+  margin-top: 0;
+}
+
+.stage .tagline {
+  margin: 2px 0 0;
+  font-size: 26px;
+  letter-spacing: 0.55em;
+  text-indent: 0.55em;
+  font-weight: 400;
+  color: var(--star-white);
+}
+
+.stage .login-btn {
+  margin-top: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 188px;
+  height: 52px;
+  padding: 0 40px;
+  border: 1.5px solid rgba(247, 248, 250, 0.88);
+  border-radius: 999px;
+  color: var(--star-white);
+  text-decoration: none;
+  font-size: 22px;
+  letter-spacing: 0.45em;
+  text-indent: 0.45em;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.stage .login-btn:hover,
+.stage .login-btn:focus-visible {
+  background: rgba(247, 248, 250, 0.12);
+  outline: none;
+}
+
+.stage .login-btn:active {
+  transform: scale(0.98);
+}
+
+.stage .brand .login-btn {
+  margin-top: 32px;
+}
+
+.stage .login-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 64px 40px;
+  text-align: center;
+}
+
+.stage .intro-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: #000;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 1s ease;
+}
+
+.stage .intro-veil.is-clear {
+  opacity: 0;
+}
+
+.stage.is-intro .hero .planet {
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+}
+
+.stage.is-intro.is-zoom .hero .planet {
+  top: var(--planet-rest-top);
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 1s ease-out, top 1s ease-out;
+}
+
+.stage.is-intro .brand {
+  opacity: 0;
+}
+
+.stage.is-intro.is-ready .brand {
+  opacity: 1;
+  transition: opacity 0.7s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage .intro-veil {
+    display: none;
+  }
+
+  .stage.is-intro .hero .planet,
+  .stage.is-intro.is-zoom .hero .planet {
+    top: var(--planet-rest-top);
+    transform: translate(-50%, -50%) scale(1);
+    transition: none;
+  }
+
+  .stage.is-zoom .stars-far,
+  .stage.is-zoom .stars-near {
+    transform: none;
+    transition: none;
+  }
+
+  .stage.is-intro .brand,
+  .stage.is-intro.is-ready .brand {
+    opacity: 1;
+    transition: none;
+  }
+}
