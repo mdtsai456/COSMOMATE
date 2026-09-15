@@ -15,9 +15,10 @@ Login (JWT)
 
 ## Zeabur
 
-- 根目錄可留空，或填 `backend`（建置時 `zbpack.json` 會把 frontend／schema 複製進 backend）
-- 環境變數建議：`DATABASE_PATH=/data/app.db`（並掛載 Volume 到 `/data`）
-- schema 檔亦放在 `backend/role_case_task_dbeaver.sql`，避免只打包 backend 時找不到
+- 使用專案根目錄 `Dockerfile`（監聽 `$PORT`，預設 8080；並打包 frontend／schema）
+- 根目錄留空；勿使用寫死 `--port 8000` 的舊 Dockerfile
+- 環境變數建議：`DATABASE_PATH=/data/app.db`（Volume 掛 `/data`）
+- 若控制台「啟動指令 ENTRYPOINT」有覆寫，可留空改走 Dockerfile 的 `CMD`
 
 ## 啟動
 
