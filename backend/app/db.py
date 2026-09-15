@@ -6,8 +6,8 @@ from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = BACKEND_DIR.parent
-# 預設寫在 repo 內 data/（與 backend 同層）。Zeabur 請設 DATABASE_PATH=/data/app.db
-DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "app.db"
+# 預設：backend/data/app.db（Zeabur 若只打包 backend 也能寫）。可用 DATABASE_PATH 覆寫。
+DEFAULT_DB_PATH = BACKEND_DIR / "data" / "app.db"
 _SCHEMA_NAME = "role_case_task_dbeaver.sql"
 
 
@@ -16,11 +16,17 @@ def get_db_path() -> str:
 
 
 def get_schema_path() -> Path:
-    candidates = (
-        PROJECT_ROOT / _SCHEMA_NAME,
-        BACKEND_DIR / _SCHEMA_NAME,
-        Path.cwd() / _SCHEMA_NAME,
-        Path.cwd().parent / _SCHEMA_NAME,
+    env = os.environ.get("SCHEMA_PATH")
+    candidates = []
+    if env:
+        candidates.append(Path(env))
+    candidates.extend(
+        (
+            BACKEND_DIR / _SCHEMA_NAME,
+            PROJECT_ROOT / _SCHEMA_NAME,
+            Path.cwd() / _SCHEMA_NAME,
+            Path.cwd().parent / _SCHEMA_NAME,
+        )
     )
     for path in candidates:
         if path.is_file():

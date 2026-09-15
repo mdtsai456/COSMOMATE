@@ -5,5 +5,6 @@
     "version": "3.12",
     "entry": "backend/app/main.py"
   },
-  "start_command": "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+  "build_command": "mkdir -p backend/frontend && cp -R frontend/. backend/frontend/ && cp -f role_case_task_dbeaver.sql backend/role_case_task_dbeaver.sql && (cp -R mood_img backend/mood_img 2>/dev/null || true) && (cp -R task_img backend/task_img 2>/dev/null || true) && (cp -R img backend/img 2>/dev/null || true)",
+  "start_command": "if [ -f app/main.py ]; then uvicorn app.main:app --host 0.0.0.0 --port $PORT; else cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT; fi"
 }

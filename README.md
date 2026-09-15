@@ -15,9 +15,9 @@ Login (JWT)
 
 ## Zeabur
 
-- 根目錄留空（部署整個 `Perfect-Co-Parenting`，含 `frontend/`）
-- 建置由根目錄 `zbpack.json` 指定為 Python + uvicorn
-- 環境變數：`DATABASE_PATH=/data/app.db`（並掛載 Volume 到 `/data`）
+- 根目錄可留空，或填 `backend`（建置時 `zbpack.json` 會把 frontend／schema 複製進 backend）
+- 環境變數建議：`DATABASE_PATH=/data/app.db`（並掛載 Volume 到 `/data`）
+- schema 檔亦放在 `backend/role_case_task_dbeaver.sql`，避免只打包 backend 時找不到
 
 ## 啟動
 

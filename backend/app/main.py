@@ -7,11 +7,26 @@ from typing import AsyncIterator
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, RedirectResponse
 
-from app.db import get_connection, init_db
+from app.db import BACKEND_DIR, get_connection, init_db
 from app.routers import admin, assignments, auth, cases, moods, notifications, tasks
 from seed import ensure_demo_data, seed_if_empty
 
-FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
+
+def _resolve_frontend_dir() -> Path:
+    candidates = (
+        BACKEND_DIR / "frontend",
+        BACKEND_DIR.parent / "frontend",
+        Path.cwd() / "frontend",
+        Path.cwd().parent / "frontend",
+    )
+    for path in candidates:
+        if (path / "index.html").is_file():
+            return path
+    # Prefer sibling of backend in full-repo layout
+    return BACKEND_DIR.parent / "frontend"
+
+
+FRONTEND_DIR = _resolve_frontend_dir()
 LANDING_DIR = FRONTEND_DIR / "landing"
 
 
@@ -116,6 +131,9 @@ def serve_img(filename: str) -> FileResponse:
     stem = Path(safe).stem
     suffix = Path(safe).suffix
     bases = (
+        BACKEND_DIR / "mood_img",
+        BACKEND_DIR / "task_img",
+        BACKEND_DIR / "img",
         FRONTEND_DIR.parent / "mood_img",
         FRONTEND_DIR.parent / "task_img",
         FRONTEND_DIR / "img",
