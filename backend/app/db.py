@@ -6,19 +6,39 @@ from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = BACKEND_DIR.parent
-# NPerCo/data/app.db（與 Perfect-Co-Parenting 同層，即 workspace 根目錄）
-WORKSPACE_ROOT = PROJECT_ROOT.parent
-DEFAULT_DB_PATH = WORKSPACE_ROOT / "data" / "app.db"
-SCHEMA_PATH = PROJECT_ROOT / "role_case_task_dbeaver.sql"
+# 預設寫在 repo 內 data/（與 backend 同層）。Zeabur 請設 DATABASE_PATH=/data/app.db
+DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "app.db"
+_SCHEMA_NAME = "role_case_task_dbeaver.sql"
 
 
 def get_db_path() -> str:
     return os.environ.get("DATABASE_PATH", str(DEFAULT_DB_PATH))
 
 
+def get_schema_path() -> Path:
+    candidates = (
+        PROJECT_ROOT / _SCHEMA_NAME,
+        BACKEND_DIR / _SCHEMA_NAME,
+        Path.cwd() / _SCHEMA_NAME,
+        Path.cwd().parent / _SCHEMA_NAME,
+    )
+    for path in candidates:
+        if path.is_file():
+            return path
+    checked = ", ".join(str(p) for p in candidates)
+    raise FileNotFoundError(f"Schema not found. Checked: {checked}")
+
+
 def get_connection(db_path: str | None = None) -> sqlite3.Connection:
     path = db_path or get_db_path()
-    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    parent = Path(path).parent
+    try:
+        parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise RuntimeError(
+            f"Cannot create DB directory {parent} (path={path}). "
+            "Set DATABASE_PATH to a writable volume, e.g. /data/app.db"
+        ) from exc
     conn = sqlite3.connect(path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
@@ -335,10 +355,8 @@ def _migrate_tasks_is_periodic(conn: sqlite3.Connection) -> None:
 
 def init_db(db_path: str | None = None) -> None:
     path = db_path or get_db_path()
-    if not SCHEMA_PATH.exists():
-        raise FileNotFoundError(f"Schema not found: {SCHEMA_PATH}")
-
-    schema_sql = SCHEMA_PATH.read_text(encoding="utf-8")
+    schema_path = get_schema_path()
+    schema_sql = schema_path.read_text(encoding="utf-8")
     conn = get_connection(path)
     try:
         conn.executescript(schema_sql)

@@ -17,13 +17,20 @@ LANDING_DIR = FRONTEND_DIR / "landing"
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    init_db()
-    conn = get_connection()
     try:
-        seed_if_empty(conn)
-        ensure_demo_data(conn)
-    finally:
-        conn.close()
+        init_db()
+        conn = get_connection()
+        try:
+            seed_if_empty(conn)
+            ensure_demo_data(conn)
+        finally:
+            conn.close()
+    except Exception:
+        # Surface full traceback in Zeabur / container logs
+        import traceback
+
+        traceback.print_exc()
+        raise
     yield
 
 

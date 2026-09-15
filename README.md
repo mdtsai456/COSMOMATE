@@ -33,7 +33,7 @@ python -m venv .venv
 開啟前端：http://127.0.0.1:8000/（同一網址：CosmoMate 開場 → 登入 → 儀表板）  
 API 文件：http://127.0.0.1:8000/docs
 
-資料庫預設：`NPerCo/data/app.db`（與 `Perfect-Co-Parenting` 同層；啟動時套用專案內 `role_case_task_dbeaver.sql` 並 seed）。可用環境變數 `DATABASE_PATH` 覆寫（例如 Zeabur volume）。
+資料庫預設：`data/app.db`（與 `backend/` 同層；啟動時套用 `role_case_task_dbeaver.sql` 並 seed）。可用環境變數 `DATABASE_PATH` 覆寫（Zeabur 建議 `/data/app.db` + Volume）。
 
 ## 前端
 
