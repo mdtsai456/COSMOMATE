@@ -13,6 +13,12 @@ Login (JWT)
               Expert／Parent 查看任務進度
 ```
 
+## Zeabur
+
+- 根目錄留空（部署整個 `Perfect-Co-Parenting`，含 `frontend/`）
+- 建置由根目錄 `zbpack.json` 指定為 Python + uvicorn
+- 環境變數：`DATABASE_PATH=/data/app.db`（並掛載 Volume 到 `/data`）
+
 ## 啟動
 
 在 `backend` 目錄使用專案虛擬環境（不污染本機 Python）：

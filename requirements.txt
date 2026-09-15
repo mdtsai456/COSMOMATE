@@ -1,0 +1,2 @@
+# Zeabur / root install: resolve backend dependencies
+-r backend/requirements.txt

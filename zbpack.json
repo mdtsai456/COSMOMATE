@@ -1,0 +1,9 @@
+{
+  "$schema": "https://schema.zeabur.app/zbpack.json",
+  "plan_type": "python",
+  "python": {
+    "version": "3.12",
+    "entry": "backend/app/main.py"
+  },
+  "start_command": "cd backend && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"
+}
