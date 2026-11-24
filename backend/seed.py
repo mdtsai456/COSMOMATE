@@ -68,33 +68,23 @@ def _ensure_link(
     )
 
 
-def _ensure_case(
+def _create_case_if_missing(
     conn: sqlite3.Connection,
     case_name: str,
     student_id: int,
     parent_id: int,
     expert_id: int,
-) -> int:
-    row = conn.execute(
-        "SELECT case_id FROM cases WHERE case_name = ?", (case_name,)
-    ).fetchone()
-    if row is not None:
-        return int(row["case_id"])
-    conn.execute(
+) -> int | None:
+    """Return the new case ID only when this call created the case."""
+    created = conn.execute(
         """
         INSERT INTO cases (case_name, student_id, parent_id, expert_id, status)
-        VALUES (?, ?, ?, ?, 'active')
+        SELECT ?, ?, ?, ?, 'active'
+        WHERE NOT EXISTS (SELECT 1 FROM cases WHERE case_name = ?)
         """,
-        (case_name, student_id, parent_id, expert_id),
+        (case_name, student_id, parent_id, expert_id, case_name),
     )
-    created = conn.execute(
-        "SELECT case_id FROM cases WHERE case_name = ?", (case_name,)
-    ).fetchone()
-    assert created is not None
-    return int(created["case_id"])
-
-
-S001_DEMO_SENTINEL = "穩定作息練習"
+    return created.lastrowid if created.rowcount else None
 
 # 30 天心情（舊→新）：前半偏穩定正向，近 14 天走弱後略回升，讓 EWMA 顯示下降。
 S001_MOOD_DAYS: list[tuple[str, str] | None] = [
@@ -184,53 +174,10 @@ def _insert_assignment(
     return task_ids
 
 
-def _clear_case_tasks(conn: sqlite3.Connection, case_id: int) -> None:
-    conn.execute("DELETE FROM notifications WHERE case_id = ?", (case_id,))
-    conn.execute(
-        """
-        DELETE FROM tasks
-        WHERE assignment_id IN (
-            SELECT assignment_id FROM task_assignments WHERE case_id = ?
-        )
-        """,
-        (case_id,),
-    )
-    conn.execute("DELETE FROM task_assignments WHERE case_id = ?", (case_id,))
-
-
-def _ensure_case_s001_demo_content(conn: sqlite3.Connection) -> None:
-    """Fill Case-S001 with a 30-day mood/task timeline for 狀態追蹤."""
-    if _running_under_pytest():
-        return
-
-    row = conn.execute(
-        """
-        SELECT case_id, student_id, parent_id, expert_id
-        FROM cases
-        WHERE case_name = 'Case-S001'
-        """
-    ).fetchone()
-    if row is None:
-        return
-
-    case_id = int(row["case_id"])
-    student_id = int(row["student_id"])
-    parent_id = int(row["parent_id"])
-    expert_id = int(row["expert_id"])
-
-    already = conn.execute(
-        """
-        SELECT 1
-        FROM tasks t
-        JOIN task_assignments ta ON ta.assignment_id = t.assignment_id
-        WHERE ta.case_id = ? AND t.title = ?
-        LIMIT 1
-        """,
-        (case_id, S001_DEMO_SENTINEL),
-    ).fetchone()
-    if already is not None:
-        return
-
+def _seed_new_s001(
+    conn: sqlite3.Connection, case_id: int, student_id: int, parent_id: int, expert_id: int
+) -> None:
+    """Fill a newly created Case-S001 with its initial 30-day timeline."""
     today = date.today()
     start = today - timedelta(days=len(S001_MOOD_DAYS) - 1)
 
@@ -246,15 +193,9 @@ def _ensure_case_s001_demo_content(conn: sqlite3.Connection) -> None:
                 case_id, student_id, entry_date, mood, note, created_at, updated_at
             )
             VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(case_id, entry_date) DO UPDATE SET
-                mood = excluded.mood,
-                note = excluded.note,
-                updated_at = excluded.updated_at
             """,
             (case_id, student_id, entry_date, mood, note, stamped, stamped),
         )
-
-    _clear_case_tasks(conn, case_id)
 
     expert_items: list[tuple[str, str | None, str | None, int, str | None, str]] = []
     parent_items: list[tuple[str, str | None, str | None, int, str | None, str]] = []
@@ -319,11 +260,10 @@ def _ensure_case_s001_demo_content(conn: sqlite3.Connection) -> None:
             )
         )
 
-    # Sentinel：用來判斷示範資料是否已寫入，避免重開伺服器重複插入。
     expert_items.insert(
         0,
         (
-            S001_DEMO_SENTINEL,
+            "穩定作息練習",
             "連續一週把起床、吃飯、睡覺時間寫下來。",
             stamp(start, "18:00:00"),
             0,
@@ -417,11 +357,12 @@ def ensure_demo_data(conn: sqlite3.Connection) -> None:
     _ensure_link(conn, student3, parent3, "Mother")
 
     # expert001 has 2 cases; expert002 has 1 case
-    _ensure_case(conn, "Case-S001", student1, parent1, expert1)
-    _ensure_case(conn, "Case-S002", student2, parent2, expert1)
-    _ensure_case(conn, "Case-S003", student3, parent3, expert2)
+    new_case_id = _create_case_if_missing(conn, "Case-S001", student1, parent1, expert1)
+    _create_case_if_missing(conn, "Case-S002", student2, parent2, expert1)
+    _create_case_if_missing(conn, "Case-S003", student3, parent3, expert2)
 
-    _ensure_case_s001_demo_content(conn)
+    if new_case_id is not None and not _running_under_pytest():
+        _seed_new_s001(conn, new_case_id, student1, parent1, expert1)
     conn.commit()
 
 
