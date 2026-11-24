@@ -21,6 +21,10 @@ Login (JWT)
 - 正式服務從 GitHub 的 `main` 分支自動部署。
 - SQLite 使用 `DATABASE_PATH=/data/app.db`，持久化磁碟掛載於 `/data`。
 
+正式服務每日台灣時間 03:00 以 SQLite 線上備份功能建立一致性副本，存放在獨立的私有 Bucket `cosmomate-sqlite-backups`。物件路徑為 `sqlite/YYYY-MM-DD.db`。服務啟動時會檢查最近一次應執行的備份，失敗時每五分鐘重試。排程需保持服務運行。
+
+每次備份均從 Bucket 下載到暫存目錄還原，核對 SHA-256、SQLite 完整性與外鍵。可在 Railway 服務日誌搜尋 `SQLite backup restored and verified` 查看日期與驗證結果。每日副本持續保留。若需自行檢查歷史備份，可下載對應日期的物件，以 SQLite 唯讀開啟該副本。
+
 ## 本機啟動
 
 在 `backend` 目錄使用專案虛擬環境（不污染本機 Python）：

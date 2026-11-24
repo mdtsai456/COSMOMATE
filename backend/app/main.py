@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
+import asyncio
+import os
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import AsyncIterator
 
@@ -46,7 +48,18 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
         traceback.print_exc()
         raise
-    yield
+    backup_job = None
+    if os.environ.get("SQLITE_BACKUP_BUCKET"):
+        from app.sqlite_backup import daily_backups
+
+        backup_job = asyncio.create_task(daily_backups())
+    try:
+        yield
+    finally:
+        if backup_job is not None:
+            backup_job.cancel()
+            with suppress(asyncio.CancelledError):
+                await backup_job
 
 
 app = FastAPI(title="Perfect Co-parenting API", lifespan=lifespan)
