@@ -2,6 +2,8 @@
 
 Expert／Parent／Student 任務指派後端（MVP）。
 
+[開啟 CosmoMate 共育星球](https://cosmomate-production.up.railway.app/) · [線上 API 文件](https://cosmomate-production.up.railway.app/docs)
+
 ## 流程
 
 ```
@@ -13,14 +15,13 @@ Login (JWT)
               Expert／Parent 查看任務進度
 ```
 
-## Zeabur
+## Railway 部署
 
 - 使用專案根目錄 `Dockerfile`（監聽 `$PORT`，預設 8080；並打包 frontend／schema）
-- 根目錄留空；勿使用寫死 `--port 8000` 的舊 Dockerfile
-- 環境變數建議：`DATABASE_PATH=/data/app.db`（Volume 掛 `/data`）
-- 若控制台「啟動指令 ENTRYPOINT」有覆寫，可留空改走 Dockerfile 的 `CMD`
+- 正式服務從 GitHub 的 `main` 分支自動部署。
+- SQLite 使用 `DATABASE_PATH=/data/app.db`，持久化磁碟掛載於 `/data`。
 
-## 啟動
+## 本機啟動
 
 在 `backend` 目錄使用專案虛擬環境（不污染本機 Python）：
 
@@ -34,7 +35,7 @@ python -m venv .venv
 開啟前端：http://127.0.0.1:8000/（同一網址：CosmoMate 開場 → 登入 → 儀表板）  
 API 文件：http://127.0.0.1:8000/docs
 
-資料庫預設：`data/app.db`（與 `backend/` 同層；啟動時套用 `role_case_task_dbeaver.sql` 並 seed）。可用環境變數 `DATABASE_PATH` 覆寫（Zeabur 建議 `/data/app.db` + Volume）。
+本機預設使用 `backend/data/app.db`。啟動時會套用 `role_case_task_dbeaver.sql` 並初始化示範資料。可用環境變數 `DATABASE_PATH` 指定資料庫路徑。
 
 ## 前端
 
