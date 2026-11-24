@@ -3,15 +3,12 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 
 WORKDIR /app
 
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=backend/pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=backend/uv.lock,target=uv.lock \
-    uv sync --frozen --no-install-project --no-dev
+COPY backend/pyproject.toml backend/uv.lock ./
+RUN uv sync --frozen --no-install-project --no-dev
 
 COPY backend/ .
 
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev
 
 
 FROM python:3.12-slim AS runtime
